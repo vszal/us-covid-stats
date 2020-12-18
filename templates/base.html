@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+
+    <title>NYT COVID-19 lookup by US ZipCode</title>
+  </head>
+  <body class="h-100">
+   
+   <div class="jumbotron">
+      <div class="container"> 
+        <h1>U.S. COVID data by ZipCode</h1>
+        <div class="input-group mb-3 input-group-lg">
+        <div class="input-group-prepend">
+          <span class="input-group-text">ZipCode</span>
+        </div>
+        <input class="form-control" name="zipcode" type="text" id="zipcode" value="{{zipcode}}" onfocus="this.value=''">
+        </div>
+            
+        <!--<button onclick="UpdateURL()" class="btn btn-primary">Go</button>-->
+    </div>    
+  </div>
+  <div class="container"> 
+
+    {% block content %} {% endblock %}
+  
+  <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-bottom">
+    <div class="container">
+    <ul class="navbar-nav">
+      <li class="nav-item text-secondary">
+      Data compiled by the <a class="text-info" href="https://github.com/nytimes/covid-19-data">New York Times</a>
+      </li>
+      <li class="nav-item text-secondary">&nbsp; &nbsp;
+      </li>
+      <li class="nav-item text-secondary">
+        API courtesy of <a class="text-info" href="https://www.mulesoft.com/exchange/68ef9520-24e9-4cf2-b2f5-620025690913/covid19-data-tracking-api/">Mulesoft</a>
+      </li>
+    </ul>
+  </div>
+  </nav>
+
+  <script>
+  document.getElementById('zipcode').onkeydown = function(e){
+    if(e.keyCode == 13){
+      UpdateURL()
+    }
+  };
+  function UpdateURL(){
+    var domain = "{{url_for('home')}}"
+    var qstring = document.getElementById("zipcode").value;
+    window.location.href = domain + qstring;
+  }
+  </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %} 
+
+    <div class="alert alert-success">Recent COVID19 data for <strong>{{county}}</strong></div>
+
+    <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Total Positive Cases</th>
+        <th>New Positive Cases</th>
+        <th>Total Deaths</th>
+        <th>New Deaths</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for covid_data in covid_data %}
+      <tr>
+        <td>{{ covid_data[0] }}</td>
+        <td> {{ covid_data[1] }}</td> 
+        <td>{{ covid_data[2] }}</td>
+        <td> {{ covid_data[3] }}</td> 
+        <td>{{ covid_data[4] }}</td>
+      </tr>
+      {% endfor %}
+  </tbody>
+  </table>
+
+{% endblock %}
