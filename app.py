@@ -16,7 +16,7 @@ def home():
     zipcode = get_zipcode_by_ip(ip_address)
     #query the NYT API    
     county, covid_data = get_covid_data(zipcode)
-    return render_template('index.html', county=county, covid_data=covid_data)
+    return render_template('index.html', zipcode=zipcode, county=county, covid_data=covid_data)
 
 @app.route('/<zipcode>')
 def zip(zipcode):
@@ -32,10 +32,13 @@ def zip(zipcode):
         return render_template('error.html', zipcode=zipcode)
 
 def get_ip():
-    # grab user's IP address
-    ip_address = request.environ.get('HTTP_X_REAL_IP', request.remote_addr) 
+    # GCP Cloud Run needs X-Forwarded_For
+    if request.headers.get('X-Forwarded-For', request.remote_addr):
+        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+    else:
+        ip_address = request.environ.get('HTTP_X_REAL_IP', request.remote_addr) 
     # if test on dev box, your IP may come back as local, set up an env variable for your external IP
-    if ip_address.startswith('127.') or ip_address.startswith('172.') or ip_address.startswith('0.'): 
+    if ip_address.startswith('127.') or ip_address.startswith('172.') or ip_address.startswith('0.') or ip_address.startswith('10.'): 
         ip_address = os.environ.get('DEV_EXT_IP')
     # Get zip code from IP
     return ip_address
