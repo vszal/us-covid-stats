@@ -13,10 +13,12 @@ app = Flask(__name__)
 def home():
     #if no zipcode in URL, guess based on geolocation
     ip_address = get_ip()
-    zipcode = get_zipcode_by_ip(ip_address)
+    zipcode, country = get_location_by_ip(ip_address)
+    if country != 'US':
+        return render_template('error.html', country=country)
     #query the NYT API    
     county, covid_data = get_covid_data(zipcode)
-    return render_template('index.html', zipcode=zipcode, county=county, covid_data=covid_data)
+    return render_template('index.html', zipcode=zipcode, country=country, county=county, covid_data=covid_data)
 
 @app.route('/<zipcode>')
 def zip(zipcode):
@@ -33,23 +35,21 @@ def zip(zipcode):
 
 def get_ip():
     # GCP Cloud Run needs X-Forwarded_For
-    if request.headers.get('X-Forwarded-For', request.remote_addr):
-        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
-    else:
-        ip_address = request.environ.get('HTTP_X_REAL_IP', request.remote_addr) 
-    # if test on dev box, your IP may come back as local, set up an env variable for your external IP
+    ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) 
+    # if testing in dev env  IP may come back as local
+    #set up an env variable for your external IP
     if ip_address.startswith('127.') or ip_address.startswith('172.') or ip_address.startswith('0.') or ip_address.startswith('10.'): 
         ip_address = os.environ.get('DEV_EXT_IP')
     # Get zip code from IP
     return ip_address
 
-def get_zipcode_by_ip(ip_address):
+def get_location_by_ip(ip_address):
     #setup ipinfo hander
     # You may want to use a secrets manager or something more secure for your IPINFO_TOKEN
     handler = ipinfo.getHandler(os.environ.get('IPINFO_TOKEN'))
     details = handler.getDetails(ip_address)
     # return zipcode from details
-    return details.postal
+    return details.postal, details.country
 
 def get_covid_data(zipcode):
     import requests
@@ -75,6 +75,7 @@ def get_covid_data(zipcode):
         # death delta
         death_delta = data[i]["deathCt"] - data[i+1]["deathCt"] 
         d_list =[data[i]["date"],data[i]["positiveCt"],pos_delta,data[i]["deathCt"],death_delta]
+        # list of lists
         covid_data.append(d_list)
         i += 1
     return county, covid_data
