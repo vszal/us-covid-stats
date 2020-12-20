@@ -23,8 +23,7 @@
         </div>
         <input class="form-control" name="zipcode" type="text" id="zipcode" value="{{zipcode}}" onfocus="this.value=''">
         </div>
-        <button type="button" onclick="GeoMe()" class="btn btn-primary">Locate by IP</button>
-        <!--<button onclick="UpdateURL()" class="btn btn-primary">Go</button>-->
+        <button type="button" onclick="window.location.href = '{{url_for("home")}}'" class="btn btn-primary">Locate by IP</button>
     </div>    
   </div>
   <div class="container"> 
@@ -46,12 +45,8 @@
   };
   function UpdateURL(){
     var domain = "{{url_for('home')}}"
-    var qstring = document.getElementById("zipcode").value;
-    window.location.href = domain + qstring;
-  }
-  function GeoMe(){
-    var domain = "{{url_for('home')}}"
-    window.location.href = "{{url_for('home')}}"
+    var zc = document.getElementById("zipcode").value;
+    window.location.href = domain + zc;
   }
   </script>
 </body>
