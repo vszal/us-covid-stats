@@ -1,7 +1,6 @@
 import os
 import re
 import requests
-import ipinfo
 import zipcodes
 from flask import Flask, render_template, request
 
