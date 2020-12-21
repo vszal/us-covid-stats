@@ -2,9 +2,6 @@
 # https://hub.docker.com/_/python
 FROM python:3.8-slim
 
-# Set app-specific environmental variables
-# IPInfo.io token
-ENV IPINFO_TOKEN xxxxxxxxxx
 # Your external IP in development to test geolocation
 ENV DEV_EXT_IP xxx.xxx.xxx.xxx
 
