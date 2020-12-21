@@ -1,6 +1,3 @@
-# Be sure to set the IPINFO_TOKEN and DEV_EXT_IP environmental variables before running
-# See https://www.mulesoft.com/exchange/68ef9520-24e9-4cf2-b2f5-620025690913/covid19-data-tracking-api/
-
 import os
 import re
 import requests
@@ -18,8 +15,8 @@ def home():
     if country != 'US':
         return render_template('error.html', country=country)
     #query the NYT API    
-    county, covid_data = get_covid_data(zipcode)
-    return render_template('index.html', zipcode=zipcode, country=country, county=county, covid_data=covid_data)
+    county, lat, lng, covid_data = get_covid_data(zipcode)
+    return render_template('index.html', zipcode=zipcode, country=country, county=county, lat=lat, lng=lng, covid_data=covid_data)
 
 @app.route('/<zipcode>')
 def zip(zipcode):
@@ -27,10 +24,9 @@ def zip(zipcode):
     try:
         zipcodes.is_real(zipcode)
         #query the NYT API    
-        county, covid_data = get_covid_data(zipcode)
-        return render_template('index.html', zipcode=zipcode, county=county, covid_data=covid_data)
+        county, lat, lng, covid_data = get_covid_data(zipcode)
+        return render_template('index.html', zipcode=zipcode, county=county, lat=lat, lng=lng, covid_data=covid_data)
     except:
-        #return "False: it's not real"
         return render_template('error.html', zipcode=zipcode)
 
 def get_ip():
@@ -38,28 +34,32 @@ def get_ip():
     ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) 
     # For dev testing, replace local ip with an external ip
     if (re.search('^192|^127|^172|^10\.', ip_address)):
-        ip_address = os.environ.get('DEV_EXT_IP')
+       ip_address = os.environ.get('DEV_EXT_IP')
     # Get zip code from IP
     return ip_address
 
 def get_location_by_ip(ip_address):
-    #setup ipinfo hander
-    # store your ipinfo token as an env variable
-    handler = ipinfo.getHandler(os.environ.get('IPINFO_TOKEN'))
-    details = handler.getDetails(ip_address)
-    # return zipcode from details
-    return details.postal, details.country
+    try:
+        loc_api = requests.get(f'http://ip-api.com/json/{ip_address}')
+        loc_api.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    loc_data = loc_api.json()
+    zipcode = loc_data['zip']
+    country = loc_data['countryCode']
+    return zipcode, country
 
 def get_covid_data(zipcode):
     try:
-        loc = requests.get(f'https://localcoviddata.com/covid19/v1/cases/newYorkTimes?zipCode={zipcode}&daysInPast=7')
-        loc.raise_for_status()
+        covid_api = requests.get(f'https://localcoviddata.com/covid19/v1/cases/newYorkTimes?zipCode={zipcode}&daysInPast=7')
+        covid_api.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
-    #success    
-    json_loc = loc.json()
-    county = json_loc["counties"][0]["countyName"]
-    data = json_loc["counties"][0]["historicData"]
+    cov_data = covid_api.json()
+    county = cov_data["counties"][0]["countyName"]
+    lat = cov_data["counties"][0]["geo"]["leftBottomLatLong"]
+    lng = cov_data["counties"][0]["geo"]["rightTopLatLong"]
+    data = cov_data["counties"][0]["historicData"]
     # calculate deltas and add to an array
     n = len(data) - 2 # since we're doing deltas and i starts at zero
     i = 0
@@ -75,7 +75,7 @@ def get_covid_data(zipcode):
         # list of lists
         covid_data.append(d_list)
         i += 1
-    return county, covid_data
+    return county, lat, lng, covid_data
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
