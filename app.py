@@ -1,8 +1,9 @@
 # Be sure to set the IPINFO_TOKEN and DEV_EXT_IP environmental variables before running
-# uses data from https://www.mulesoft.com/exchange/68ef9520-24e9-4cf2-b2f5-620025690913/covid19-data-tracking-api/
+# See https://www.mulesoft.com/exchange/68ef9520-24e9-4cf2-b2f5-620025690913/covid19-data-tracking-api/
 
 import os
-import logging
+import re
+import requests
 import ipinfo
 import zipcodes
 from flask import Flask, render_template, request
@@ -25,7 +26,6 @@ def zip(zipcode):
     # Test if the inputted zipcode is real using the package "zipcodes"
     try:
         zipcodes.is_real(zipcode)
-        #return "True: it's real"
         #query the NYT API    
         county, covid_data = get_covid_data(zipcode)
         return render_template('index.html', zipcode=zipcode, county=county, covid_data=covid_data)
@@ -36,24 +36,21 @@ def zip(zipcode):
 def get_ip():
     # GCP Cloud Run needs X-Forwarded_For
     ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) 
-    # if testing in dev env  IP may come back as local
-    #set up an env variable for your external IP
-    if ip_address.startswith('127.') or ip_address.startswith('172.') or ip_address.startswith('0.') or ip_address.startswith('10.'): 
+    # For dev testing, replace local ip with an external ip
+    if (re.search('^192|^127|^172|^10\.', ip_address)):
         ip_address = os.environ.get('DEV_EXT_IP')
     # Get zip code from IP
     return ip_address
 
 def get_location_by_ip(ip_address):
     #setup ipinfo hander
-    # You may want to use a secrets manager or something more secure for your IPINFO_TOKEN
+    # store your ipinfo token as an env variable
     handler = ipinfo.getHandler(os.environ.get('IPINFO_TOKEN'))
     details = handler.getDetails(ip_address)
     # return zipcode from details
     return details.postal, details.country
 
 def get_covid_data(zipcode):
-    import requests
-
     try:
         loc = requests.get(f'https://localcoviddata.com/covid19/v1/cases/newYorkTimes?zipCode={zipcode}&daysInPast=7')
         loc.raise_for_status()
