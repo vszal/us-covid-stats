@@ -10,12 +10,15 @@ app = Flask(__name__)
 def home():
     #if no zipcode in URL, guess based on geolocation
     ip_address = get_ip()
-    zipcode, country = get_location_by_ip(ip_address)
-    if country != 'US':
-        return render_template('error.html', country=country)
-    #query the NYT API    
-    county, lat, lng, covid_data = get_covid_data(zipcode)
-    return render_template('index.html', zipcode=zipcode, country=country, county=county, lat=lat, lng=lng, covid_data=covid_data)
+    if ip_address =='': #ip_address is undefined, likely missing environment variable
+        return '<strong>IP address is undefined. Make sure DEV_EXT_IP environment variable is set</strong>'
+    else:
+        zipcode, country = get_location_by_ip(ip_address)
+        if country != 'US':
+            return render_template('error.html', country=country)
+        #query the covid data API    
+        county, lat, lng, covid_data = get_covid_data(zipcode)
+        return render_template('index.html', zipcode=zipcode, country=country, county=county, lat=lat, lng=lng, covid_data=covid_data)        
 
 @app.route('/<zipcode>')
 def zip(zipcode):
@@ -31,10 +34,9 @@ def zip(zipcode):
 def get_ip():
     # GCP Cloud Run needs X-Forwarded_For
     ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) 
-    # For dev testing, replace local ip with an external ip
+    # For dev testing, get external IP from environment variable
     if (re.search('^192|^127|^172|^10\.', ip_address)):
-       ip_address = os.environ.get('DEV_EXT_IP')
-    # Get zip code from IP
+        ip_address = os.environ.get('DEV_EXT_IP')  
     return ip_address
 
 def get_location_by_ip(ip_address):
