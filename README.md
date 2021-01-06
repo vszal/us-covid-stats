@@ -3,12 +3,10 @@ Web app that presents COVID-19 infection and death counts by U.S. ZipCodes (pyth
 
 Uses the [Mulesoft COVID-19 APIs](https://www.mulesoft.com/exchange/68ef9520-24e9-4cf2-b2f5-620025690913/covid19-data-tracking-api/). Note there are some known problems with this API at time of writing. For instance, it returns no data for zipcodes in NYC (e.g. 10001, 10005).
 
-[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
-
 ## Building, Deploying & Running
 This is a fairly straightfoward containerized application which can be run in several ways including locally via python, as a Docker container, or in Google Cloud Run.
 
-**via Python**
+### via Python
 
 From the root dir of the app:
 
@@ -16,7 +14,7 @@ From the root dir of the app:
 
 The app will be available on localhost port 8080 (e.g., `http://0.0.0.0:8080`)
 
-**via Dockerfile**
+### via Dockerfile
 
 From the root dir of the app:
 
@@ -24,9 +22,9 @@ From the root dir of the app:
 
 The app will be available on localhost port 8080 (e.g., `http://0.0.0.0:8080`)
 
-**via Google Cloud Run (via Cloud Build)**
+### via Google Cloud Run (via Cloud Build)
 
-Click the *Run on Google Cloud* button above.
+[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
 
 - OR -
 
