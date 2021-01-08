@@ -25,11 +25,11 @@ def zip(zipcode):
     # Test if the inputted zipcode is real using the package "zipcodes"
     try:
         zipcodes.is_real(zipcode)
-        #query the NYT API    
-        county, lat, lng, covid_data = get_covid_data(zipcode)
-        return render_template('index.html', zipcode=zipcode, county=county, lat=lat, lng=lng, covid_data=covid_data)
     except:
         return render_template('error.html', zipcode=zipcode)
+    #query the covid data and population APIs    
+    county, lat, lng, covid_data = get_covid_data(zipcode)
+    return render_template('index.html', zipcode=zipcode, county=county, lat=lat, lng=lng, covid_data=covid_data)
 
 def get_ip():
     # GCP Cloud Run needs X-Forwarded_For
@@ -83,17 +83,18 @@ def get_covid_data(zipcode):
     return county, lat, lng, covid_data
 
 def get_census_data(lat, lng):
-    # the census API requires queries via geocodes, which we get via this coordinates query
-    # see https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.pdf
+    # the census API requires queries via FIPS geocodes, which we get via this coordinates query
+    # see https://geo.fcc.gov/api/census/
     try:
-        geocode = requests.get(f'https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x={lng}&y={lat}&layers=1&benchmark=Public_AR_Current&vintage=Current_Current&format=json')
+        geocode = requests.get(f'https://geo.fcc.gov/api/census/block/find?latitude={lat}&longitude={lng}&showall=true&format=json')
         geocode.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err) 
 
     geocodej = geocode.json()
-    county_code = geocodej["result"]["geographies"]["Counties"][0]["COUNTY"]
-    state_code = geocodej["result"]["geographies"]["Counties"][0]["STATE"]
+    FIPS_code = geocodej["County"]["FIPS"]
+    state_code = FIPS_code[0:2]
+    county_code = FIPS_code[2:5]
     
     # get county population from the census API
     try:
