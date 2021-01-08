@@ -10,12 +10,15 @@ app = Flask(__name__)
 def home():
     #if no zipcode in URL, guess based on geolocation
     ip_address = get_ip()
-    zipcode, country = get_location_by_ip(ip_address)
-    if country != 'US':
-        return render_template('error.html', country=country)
-    #query the NYT API    
-    county, lat, lng, covid_data = get_covid_data(zipcode)
-    return render_template('index.html', zipcode=zipcode, country=country, county=county, lat=lat, lng=lng, covid_data=covid_data)
+    if ip_address =='': #ip_address is undefined, likely missing environment variable
+        return '<strong>IP address is undefined. Make sure DEV_EXT_IP environment variable is set</strong>'
+    else:
+        zipcode, country = get_location_by_ip(ip_address)
+        if country != 'US':
+            return render_template('error.html', country=country)
+        #query the covid data API    
+        county, lat, lng, covid_data = get_covid_data(zipcode)
+        return render_template('index.html', zipcode=zipcode, country=country, county=county, lat=lat, lng=lng, covid_data=covid_data)        
 
 @app.route('/<zipcode>')
 def zip(zipcode):
@@ -31,10 +34,9 @@ def zip(zipcode):
 def get_ip():
     # GCP Cloud Run needs X-Forwarded_For
     ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) 
-    # For dev testing, replace local ip with an external ip
+    # For dev testing, get external IP from environment variable
     if (re.search('^192|^127|^172|^10\.', ip_address)):
-       ip_address = os.environ.get('DEV_EXT_IP')
-    # Get zip code from IP
+        ip_address = os.environ.get('DEV_EXT_IP')  
     return ip_address
 
 def get_location_by_ip(ip_address):
@@ -59,6 +61,8 @@ def get_covid_data(zipcode):
     lat = cov_data["counties"][0]["geo"]["leftBottomLatLong"]
     lng = cov_data["counties"][0]["geo"]["rightTopLatLong"]
     data = cov_data["counties"][0]["historicData"]
+    # get population for county by coordinates
+    county_population = get_census_data(lat, lng)
     # calculate deltas and add to an array
     n = len(data) - 2 # since we're doing deltas and i starts at zero
     i = 0
@@ -70,11 +74,36 @@ def get_covid_data(zipcode):
         pos_delta = data[i]["positiveCt"] - data[(i+1)]["positiveCt"] 
         # death delta
         death_delta = data[i]["deathCt"] - data[i+1]["deathCt"] 
-        d_list =[data[i]["date"],data[i]["positiveCt"],pos_delta,data[i]["deathCt"],death_delta]
+        pos_per_1000 = "{:.2f}".format(data[i]["positiveCt"]/(county_population/1000))
+        death_per_1000 = "{:.2f}".format(data[i]["deathCt"]/(county_population/1000))
+        d_list =[data[i]["date"],data[i]["positiveCt"],pos_delta,data[i]["deathCt"],death_delta, pos_per_1000, death_per_1000]
         # list of lists
         covid_data.append(d_list)
         i += 1
     return county, lat, lng, covid_data
+
+def get_census_data(lat, lng):
+    # the census API requires queries via geocodes, which we get via this coordinates query
+    # see https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.pdf
+    try:
+        geocode = requests.get(f'https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x={lng}&y={lat}&layers=1&benchmark=Public_AR_Current&vintage=Current_Current&format=json')
+        geocode.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err) 
+
+    geocodej = geocode.json()
+    county_code = geocodej["result"]["geographies"]["Counties"][0]["COUNTY"]
+    state_code = geocodej["result"]["geographies"]["Counties"][0]["STATE"]
+    
+    # get county population from the census API
+    try:
+        population = requests.get(f'https://api.census.gov/data/2019/pep/population?get=POP,NAME,STATE&for=county:{county_code}&in=state:{state_code}')
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err) 
+
+    popj = population.json()
+    county_population = int(popj[1][0])
+    return county_population
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
