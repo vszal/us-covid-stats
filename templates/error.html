@@ -2,11 +2,17 @@
 
 {% block content %} 
         <div class="alert alert-warning">
+          {% if no_ip %}
+          <strong>IP address is undefined</strong> Make sure DEV_EXT_IP environment variable is set.
+          {% endif %}
+          {% if error_status %}
+          <strong>{{error_status}}</strong>
+          {% endif %}
           {% if zipcode %}
           <strong>{{zipcode}}</strong> is not a valid ZipCode
           {% endif %}
           {% if country %}
-          <strong>Location error</strong> only valid for U.S. COVID19 stats. You seem to be in {{country}}.
+          <strong>No data for country: {{country}}</strong> valid only for U.S. COVID19 stats.
           {% endif %}
         </div>
 {% endblock %}

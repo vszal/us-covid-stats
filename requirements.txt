@@ -1,5 +1,3 @@
 # package>=version
-chardet==3.0.4
 requests>=2.25.0
 flask>=1.1.2
-zipcodes>=1.1.2
