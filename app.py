@@ -41,14 +41,10 @@ def zip(zipcode):
     zipcode_format_test = re.search("^\d{5}$", zipcode)
     if not zipcode_format_test:
         return render_template('error.html', zipcode=zipcode)
-
     try:
         covid_json_data = get_covid_data_from_zip(zipcode)
     except:
-        return render_template('error.html', error_status='There is a problem connecting to the COVID data API')
-    # error if entered zipcode doesn't exist
-    if len(covid_json_data)==0: 
-        return render_template('error.html', zipcode=zipcode)
+        return render_template('error.html', error_status=f'ZipCode {zipcode} is not valid or no associated COVID-19 data.')
     # parse the data and format, get census data
     try:
         county, lat, lng, covid_data = parse_covid_data(covid_json_data)
