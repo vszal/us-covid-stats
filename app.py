@@ -10,36 +10,36 @@ def home():
     # grab IP from env variable
     ip_address = get_ip()
     if ip_address =='': #ip_address is undefined, likely missing fall-back environment variable
-        return render_template('error.html', no_ip='1')
-    
-    #if no zipcode in URL, guess based on geolocation
-    try: 
-        zipcode, country = get_location_by_ip(ip_address)
-    except:
-        return render_template('error.html', error_status='There is a problem connecting to the geolocation API')
-
-    if country != 'US':
-        return render_template('error.html', country=country)
-    #query the covid data API  
-    try:
-        covid_json_data = get_covid_data_from_zip(zipcode)
-    except:
-        return render_template('error.html', error_status='There is a problem connecting to the COVID data API')
-
-    # parse the data and format, get census data
-    try:
-        county, lat, lng, covid_data = parse_covid_data(covid_json_data)
-    except:
-        return render_template('error.html', error_status='There is a problem connecting to the census data API')
+        return render_template('error.html', error_status='External IP address required. Make sure DEV_EXT_IP environment variable is set.')
     else:
-        # Success path
-        return render_template('index.html', zipcode=zipcode, county=county, lat=lat, lng=lng, covid_data=covid_data)
+    #if no zipcode in URL, guess based on geolocation
+        try: 
+            zipcode, country = get_location_by_ip(ip_address)
+        except:
+            return render_template('error.html', error_status='There is a problem connecting to the geolocation API')
+
+        if country != 'US':
+            return render_template('error.html', country=country)
+        #query the covid data API  
+        try:
+            covid_json_data = get_covid_data_from_zip(zipcode)
+        except:
+            return render_template('error.html', error_status='There is a problem connecting to the COVID data API')
+
+        # parse the data and format, get census data
+        try:
+            county, lat, lng, covid_data = parse_covid_data(covid_json_data)
+        except:
+            return render_template('error.html', error_status='There is a problem connecting to the census data API')
+        else:
+            # Success path
+            return render_template('index.html', zipcode=zipcode, county=county, lat=lat, lng=lng, covid_data=covid_data)
       
 @app.route('/<zipcode>')
 def zip(zipcode):
     # Make sure zipcode matches 5 digit format
-    zipcode_format_test = re.search(r'[5]\d', zipcode)
-    if zipcode_format_test is not None:
+    zipcode_format_test = re.search("^\d{5}$", zipcode)
+    if not zipcode_format_test:
         return render_template('error.html', zipcode=zipcode)
 
     try:
