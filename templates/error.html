@@ -5,11 +5,5 @@
           {% if error_status %}
           <strong>{{error_status}}</strong>
           {% endif %}
-          {% if zipcode %}
-          <strong>{{zipcode}}</strong> is not a valid 5-digit ZipCode
-          {% endif %}
-          {% if country %}
-          <strong>No data for country: {{country}}</strong> valid only for U.S. COVID19 stats.
-          {% endif %}
         </div>
 {% endblock %}
