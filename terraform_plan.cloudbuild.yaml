@@ -1,0 +1,29 @@
+# To build and deploy to Cloud Run, run from this directory:
+# $ gcloud builds submit . --config=cloudbuild.yaml
+steps:
+- name: 'gcr.io/$PROJECT_ID/terraform'
+  id: terraform init
+  args: [
+    'init',
+    '-backend-config=bucket=$PROJECT_ID-tf-state',
+    '-backend-config=prefix=terraform/state'
+  ]
+  waitFor: ['-']
+- name: 'gcr.io/$PROJECT_ID/terraform'
+  id: terraform plan
+  args: [
+    'plan',
+    '-out=tfplan'
+    '-var=google_project_id=$PROJECT_ID',
+    '-var=google_region=us-east1'
+  ]
+  waitFor: ['terraform init']
+- name: gcr.io/cloud-builders/gcloud
+  id: fetch gh token
+  entrypoint: 'bash'
+  args: [ '-c', "gcloud secrets versions access latest --secret=github_token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > token.txt" ]
+  waitFor: ['-']
+- name: 'gcr.io/$PROJECT_ID/github'
+  id: publish plan
+  args: ['repo', 'view', 'GoogleCloudPlatform/cloud-builders-community']
+  waitFor: ['terraform plan']
