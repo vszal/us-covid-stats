@@ -28,5 +28,5 @@ steps:
   args: 
     - '-c'
     - |
-      gh pr comment $_PR_NUMBER $(< tfplan)
+      gh pr comment $_PR_NUMBER "$(< tfplan)"
   waitFor: ['terraform plan']
