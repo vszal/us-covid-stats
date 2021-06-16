@@ -19,3 +19,4 @@ override.tf.json
 
 # exclude tf lock
 .terraform.lock.hcl
+tfplan

@@ -11,19 +11,32 @@ steps:
   waitFor: ['-']
 - name: 'gcr.io/$PROJECT_ID/terraform'
   id: terraform plan
-  args: [
-    'plan',
-    '-out=tfplan'
-    '-var=google_project_id=$PROJECT_ID',
-    '-var=google_region=us-east1'
-  ]
+  entrypoint: 'bash'
+  args: 
+    - '-c'
+    - |
+      # determine terraform changes
+      terraform plan > /dev/null \
+      -var=google_project_id=$PROJECT_ID \
+      -var=google_region=us-east1 \
+      -out=tfplan
+      # write changes (sans color codes) to a file
+      echo "Terraform changes from this PR:" > /workspace/tfchanges
+      echo "-------------------------------" >> /workspace/tfchanges
+      terraform show tfplan | sed 's/\x1b\[[0-9;]*m//g' >> /workspace/tfchanges
   waitFor: ['terraform init']
 - name: gcr.io/cloud-builders/gcloud
   id: fetch gh token
   entrypoint: 'bash'
-  args: [ '-c', "gcloud secrets versions access latest --secret=github_token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > token.txt" ]
+  args: [ '-c', "gcloud secrets versions access latest --secret=github_token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > /workspace/token.txt" ]
   waitFor: ['-']
 - name: 'gcr.io/$PROJECT_ID/github'
   id: publish plan
-  args: ['repo', 'view', 'GoogleCloudPlatform/cloud-builders-community']
+  entrypoint: 'bash'
+  args: 
+    - '-c'
+    - |
+      cat /workspace/tfchanges
+      gh auth login --with-token < /workspace/token.txt
+      gh pr comment $_PR_NUMBER --body-file="/workspace/tfchanges"
   waitFor: ['terraform plan']
