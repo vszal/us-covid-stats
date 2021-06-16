@@ -21,7 +21,7 @@ resource "google_cloud_run_service" "covid_stats" {
   }
 
   traffic {
-    percent         = 100
+    percent         = 99
     latest_revision = true
   }
 
