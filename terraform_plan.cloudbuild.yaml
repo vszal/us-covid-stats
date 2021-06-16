@@ -24,5 +24,9 @@ steps:
   waitFor: ['-']
 - name: 'gcr.io/$PROJECT_ID/github'
   id: publish plan
-  args: ['repo', 'view', 'GoogleCloudPlatform/cloud-builders-community']
+  entrypoint: 'bash'
+  args: 
+    - '-c'
+    - |
+      gh pr comment $_PR_NUMBER $(< tfplan)
   waitFor: ['terraform plan']
