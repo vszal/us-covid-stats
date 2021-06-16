@@ -47,6 +47,7 @@ _Prerequisites:_
   * Run `gcloud builds submit --substitutions=_TERRAFORM_VERSION="0.15.5",_TERRAFORM_VERSION_SHA256SUM="3b144499e08c245a8039027eb2b84c0495e119f57d79e8fb605864bb48897a7d"`
 * The [GitHub CLI builder image](https://github.com/GoogleCloudPlatform/cloud-builders-community/tree/master/github)
   * Clone and build/push
+  * Configure token secret as describedin `github` builder README
 
 ## Testing geolocation in dev
 Geolocation is done by IP address (using [ip-api.com](https://ip-api.com)). When testing locally, your external IP may not be reported to the app, so set the `DEV_EXT_IP` to your external IP address in your dev environment or in the Dockerfile.
