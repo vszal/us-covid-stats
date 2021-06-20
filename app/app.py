@@ -71,7 +71,7 @@ def get_location_by_ip(ip_address):
     return zipcode, country
 
 def get_covid_data_from_zip(zipcode):
-    covid_api = requests.get(f'https://localcoviddata.com/covid19/v1/cases/newYorkTimes?zipCode={zipcode}&daysInPast=7')
+    covid_api = requests.get(f'https://localcoviddata.com/covid19/v1/cases/newYorkTimes?zipCode={zipcode}&daysInPast=7', verify=False)
     covid_api.raise_for_status()
     return covid_api.json()
 

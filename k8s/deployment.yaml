@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: us-covid-service
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  type: LoadBalancer
+  selector:
+    app: us-covid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: us-covid-deployment
+  labels:
+    app: us-covid
+spec:
+#  strategy: {}
+  selector:
+    matchLabels:
+      app: us-covid
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: us-covid
+    spec:
+      containers:
+      - name: us-covid
+        image: us-covid:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DEV_EXT_IP
+          value: "97.113.223.41"

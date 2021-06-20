@@ -3,13 +3,13 @@
 steps:
 # Build the container image
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/python3.8-slim', '.']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/covid-stats', '.']
 # Push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/$PROJECT_ID/python3.8-slim']
+  args: ['push', 'gcr.io/$PROJECT_ID/covid-stats']
 # Deploy container image to Cloud Run
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
-  args: ['run', 'deploy', 'us-covid-stats', '--image', 'gcr.io/$PROJECT_ID/python3.8-slim', '--region', 'us-west1', '--platform', 'managed', '--allow-unauthenticated']
+  args: ['run', 'deploy', 'us-covid-stats', '--image', 'gcr.io/$PROJECT_ID/covid-stats', '--region', 'us-west1', '--platform', 'managed', '--allow-unauthenticated']
 images:
-- gcr.io/$PROJECT_ID/python3.8-slim
+- gcr.io/$PROJECT_ID/covid-stats

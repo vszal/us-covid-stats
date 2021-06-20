@@ -1,0 +1,65 @@
+apiVersion: skaffold/v2beta15
+kind: Config
+metadata:
+  name: us-covid
+build:
+  local: 
+    push: false
+  artifacts:
+  - image: us-covid
+    context: .
+    docker:
+      dockerfile: k8s/dockerhub.Dockerfile
+    sync:
+      infer:
+        - 'app/app.py'
+        - 'app/templates/*.html'
+        - 'app/static/*.*'
+deploy:
+  kubectl:
+    #manifests:
+    #- ["k8s/*.yaml"]
+portForward:
+- resourceType: deployment
+  resourceName: us-covid-deployment
+  port: 8080 
+  localPort: 8080
+profiles:
+  - name: packs
+    build:
+      local: 
+        push: false
+      artifacts:
+      - image: us-covid
+        buildpacks:
+          builder: gcr.io/buildpacks/builder
+          projectDescriptor: buildpacks.toml
+          dependencies:
+            paths:
+              - "app/"
+        #sync:
+        #  manual:
+        #    - src: 'app/app.py'
+        #     dest: /layers/google.python.pip/pip/lib/python3.8/site-packages/flask/
+        #    - src: 'app/templates/*.html'
+        #      dest: /layers/google.python.pip/pip/lib/python3.8/site-packages/flask/templates
+        #    - src: 'app/static/*.*'
+        #      dest: /layers/google.python.pip/pip/lib/python3.8/site-packages/flask/static
+          
+            
+  - name: distroless
+    build:
+      local:
+        push: false
+      artifacts:
+      - image: us-covid
+        docker:
+          dockerfile: k8s/distroless.Dockerfile
+  - name: prod
+    build:
+      googleCloudBuild:
+        projectId: victor-misc
+      artifacts:
+      - image: us-covid
+        docker:
+          dockerfile: k8s/distroless.Dockerfile
