@@ -1,9 +1,9 @@
 # To build and deploy to Cloud Run, run from this directory:
-# $ gcloud builds submit . --config=cloudbuild.yaml
+# $ gcloud builds submit . --config=cloudrun/cr-cloudbuild.yaml
 steps:
 # Build the container image
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/covid-stats', '.']
+  args: ['build', '.', '-t', 'gcr.io/$PROJECT_ID/covid-stats', '-f', 'docker/pythonalpine.Dockerfile']
 # Push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/$PROJECT_ID/covid-stats']

@@ -10,11 +10,11 @@ WORKDIR /home/worker
 
 ENV PATH="/home/worker/.local/bin:${PATH}"
 
-COPY --chown=worker:worker app/requirements.txt requirements.txt
+COPY --chown=worker:worker requirements.txt requirements.txt
 RUN pip install --user --no-cache-dir -r requirements.txt
 
 # Copy local code to the container image.
-COPY --chown=worker:worker app* .
+COPY --chown=worker:worker . .
 
 # Service must listen to $PORT environment variable.
 # This default value facilitates local development.

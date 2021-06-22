@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: us-covid-service
+  name: covid-stats-service
 spec:
   ports:
   - port: 8080
@@ -9,28 +9,28 @@ spec:
     name: http
   type: LoadBalancer
   selector:
-    app: us-covid
+    app: covid-stats
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: us-covid-deployment
+  name: covid-stats-deployment
   labels:
-    app: us-covid
+    app: covid-stats
 spec:
 #  strategy: {}
   selector:
     matchLabels:
-      app: us-covid
+      app: covid-stats
   replicas: 2
   template:
     metadata:
       labels:
-        app: us-covid
+        app: covid-stats
     spec:
       containers:
-      - name: us-covid
-        image: us-covid:latest
+      - name: covid-stats
+        image: covid-stats:latest
         ports:
         - containerPort: 8080
         env:

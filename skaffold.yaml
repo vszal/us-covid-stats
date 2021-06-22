@@ -1,27 +1,27 @@
 apiVersion: skaffold/v2beta15
 kind: Config
 metadata:
-  name: us-covid
+  name: covid-stats
 build:
   local: 
     push: false
   artifacts:
-  - image: us-covid
+  - image: covid-stats
     context: .
     docker:
-      dockerfile: k8s/dockerhub.Dockerfile
+      dockerfile: docker/pythonalpine.Dockerfile
     sync:
       infer:
-        - 'app/app.py'
-        - 'app/templates/*.html'
-        - 'app/static/*.*'
+        - 'app.py'
+        - 'templates/*.html'
+        - 'static/*.*'
 deploy:
   kubectl:
     #manifests:
     #- ["k8s/*.yaml"]
 portForward:
 - resourceType: deployment
-  resourceName: us-covid-deployment
+  resourceName: covid-stats-deployment
   port: 8080 
   localPort: 8080
 profiles:
@@ -30,36 +30,31 @@ profiles:
       local: 
         push: false
       artifacts:
-      - image: us-covid
+      - image: covid-stats
         buildpacks:
           builder: gcr.io/buildpacks/builder
-          projectDescriptor: buildpacks.toml
-          dependencies:
-            paths:
-              - "app/"
+        #  projectDescriptor: buildpacks.toml
         #sync:
         #  manual:
-        #    - src: 'app/app.py'
+        #    - src: 'app.py'
         #     dest: /layers/google.python.pip/pip/lib/python3.8/site-packages/flask/
-        #    - src: 'app/templates/*.html'
+        #    - src: 'templates/*.html'
         #      dest: /layers/google.python.pip/pip/lib/python3.8/site-packages/flask/templates
-        #    - src: 'app/static/*.*'
-        #      dest: /layers/google.python.pip/pip/lib/python3.8/site-packages/flask/static
-          
-            
+        #    - src: 'static/*.*'
+        #      dest: /layers/google.python.pip/pip/lib/python3.8/site-packages/flask/static 
   - name: distroless
     build:
       local:
         push: false
       artifacts:
-      - image: us-covid
+      - image: covid-stats
         docker:
-          dockerfile: k8s/distroless.Dockerfile
+          dockerfile: docker/distroless.Dockerfile
   - name: prod
     build:
       googleCloudBuild:
         projectId: victor-misc
       artifacts:
-      - image: us-covid
+      - image: covid-stats
         docker:
-          dockerfile: k8s/distroless.Dockerfile
+          dockerfile: docker/distroless.Dockerfile
