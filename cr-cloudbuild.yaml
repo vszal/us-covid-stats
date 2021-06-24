@@ -1,6 +1,14 @@
 # To build and deploy to Cloud Run, run from this directory:
-# $ gcloud builds submit . --config=cloudrun/cr-cloudbuild.yaml
+# $ gcloud builds submit . --config=cr-cloudbuild.yaml
 steps:
+# Install dependencies
+- name: python:3.8-alpine
+  entrypoint: pip
+  args: ["install", "-r", "requirements.txt", "--user"]
+# Run unit tests
+- name: python:3.8-alpine
+  entrypoint: python
+  args: ["unit_tests.py"]
 # Build the container image
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '.', '-t', 'gcr.io/$PROJECT_ID/covid-stats', '-f', 'docker/pythonalpine.Dockerfile']
@@ -10,6 +18,6 @@ steps:
 # Deploy container image to Cloud Run
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
-  args: ['run', 'deploy', 'us-covid-stats', '--image', 'gcr.io/$PROJECT_ID/covid-stats', '--region', 'us-west1', '--platform', 'managed', '--allow-unauthenticated']
+  args: ['run', 'deploy', 'covid-stats', '--image', 'gcr.io/$PROJECT_ID/covid-stats', '--region', 'us-west1', '--platform', 'managed', '--allow-unauthenticated']
 images:
 - gcr.io/$PROJECT_ID/covid-stats

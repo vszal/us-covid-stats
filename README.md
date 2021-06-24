@@ -21,7 +21,7 @@ The app will be available on localhost port 8080 (e.g., `http://0.0.0.0:8080`)
 
 From the root dir of the app:
 
-`$ docker build -t uscovidstats . && docker run --rm -p 8080:8080 -e PORT=8080 uscovidstats`
+`$ docker build -t covidstats -f docker/pythonalpine.Dockerfile . && docker run --rm -p 8080:8080 -e PORT=8080 covidstats`
 
 The app will be available on localhost port 8080 (e.g., `http://0.0.0.0:8080`)
 
@@ -31,9 +31,11 @@ The app will be available on localhost port 8080 (e.g., `http://0.0.0.0:8080`)
 
 \- OR -
 
+Before you begin, [grant Cloud Build permission to deploy to Cloud Run](https://cloud.google.com/build/docs/deploying-builds/deploy-cloud-run#before_you_begin)
+
 From the root dir of the app:
 
-`$ gcloud builds submit . --config=cloudbuild.yaml`
+`$ gcloud builds submit . --config=cr-cloudbuild.yaml`
 
 The build results will provide a unique URL for the app.
 
