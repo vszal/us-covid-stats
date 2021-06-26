@@ -1,9 +1,0 @@
-[project]
-id = "us-covid-stats"
-name = "COVID Stats App"
-version = "1.0.0"
-
-[build]
-include = [
-    "app/"
-]
